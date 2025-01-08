@@ -1,0 +1,14 @@
+[package]
+name = "fielder-proc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+syn = "2.0.95"
+quote = "1.0.38"
+
+[lints]
+workspace = true
+
+[lib]
+proc-macro = true

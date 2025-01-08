@@ -1,13 +1,6 @@
-[package]
-name = "fielder"
-version = "0.1.0"
-edition = "2021"
-
-description = "Efficient and precise bitfields"
-categories = ["no-std"]
-keywords = ["no_std", "bitflag", "bitfield"]
-repository = "https://github.com/jack-weilage/fielder"
-license = "MIT OR Apache-2.0"
+[workspace]
+resolver = "2"
+members = ["crates/*"]
 
 [lints.clippy]
 cargo = "deny"
