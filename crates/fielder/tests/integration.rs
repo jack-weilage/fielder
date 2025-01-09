@@ -1,4 +1,4 @@
-use fielder_proc::bitfield;
+use fielder::bitfield;
 
 #[test]
 fn nav_pvt_flags_one() {
