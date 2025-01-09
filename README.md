@@ -1,3 +1,3 @@
 # `fielder`
 
-Efficient and precise bitfields, based on `bitflags`. Fielder supports both bitflag and complex bitfield structures involving multiple bits.
+Efficient and precise bitfields, based on `bitflags`. For examples and documentation, check [docs.rs](https://docs.rs/fielder/latest/fielder).

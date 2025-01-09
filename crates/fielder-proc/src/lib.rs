@@ -1,3 +1,7 @@
+//! # `fielder-proc`
+//!
+//! This crate contains the proc-macros used by
+//! [`fielder`](https://docs.rs/fielder/latest/fielder).
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
 
