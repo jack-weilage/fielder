@@ -162,13 +162,17 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
 
         const_fields.push(quote! {
             #(#attrs)*
-            const #name: ::fielder::Field<#ty> = ::fielder::Field {
-                name: stringify!(#name),
-                start_bit: #start_bit,
-                end_bit: #end_bit,
+            const #name: ::fielder::Field<#ty> = {
                 #[allow(clippy::identity_op)]
-                mask: ((1 << (#end_bit - #start_bit + 1)) - 1) << #start_bit,
-                value: #value << #start_bit
+                let mask = ((1 << (#end_bit - #start_bit + 1)) - 1) << #start_bit;
+
+                ::fielder::Field {
+                    name: stringify!(#name),
+                    start_bit: #start_bit,
+                    end_bit: #end_bit,
+                    mask,
+                    value: (#value << #start_bit) & mask
+                }
             };
         });
         impl_const_fields.push(quote! { Self::#name });
