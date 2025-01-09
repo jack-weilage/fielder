@@ -1,10 +1,18 @@
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     Token as T,
 };
+
+macro_rules! syn_error {
+    ($span:expr, $comment:expr) => {
+        return syn::Error::new_spanned($span, $comment)
+            .to_compile_error()
+            .into();
+    };
+}
 
 pub struct Bitfield {
     attrs: Vec<syn::Attribute>,
@@ -56,11 +64,8 @@ impl Parse for Field {
 
         let name = input.parse::<syn::Ident>()?;
         input.parse::<T![:]>()?;
-        // TODO: Validate that the start bit is less than the end bit.
-        // TODO: Validate that the start bit is smaller than the length of the underlying bits.
         let start_bit = input.parse::<syn::LitInt>()?;
         // If the next two tokens are "..", this field has a range of bits.
-        // TODO: Validate that the end bit is smaller than the length of the underlying bits.
         let end_bit = if input.peek(T![.]) && input.peek2(T![.]) {
             input.parse::<T![.]>()?;
             input.parse::<T![.]>()?;
@@ -97,8 +102,22 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
         fields,
     } = bitfield;
 
+    // Ensure that the type is an unsigned integer.
+    let bits = match ty.to_token_stream().to_string().as_str() {
+        "u8" => 8,
+        "u16" => 16,
+        "u32" => 32,
+        "u64" => 64,
+        "u128" => 128,
+        _ => {
+            syn_error!(ty, "Type must be one of u8, u16, u32, u64, or u128");
+        }
+    };
+
     let mut const_fields = Vec::with_capacity(fields.len());
     let mut impl_const_fields = Vec::with_capacity(fields.len());
+    // TODO: ensure that multiple fields cannot have both the same start + end bits and value.
+    // TODO: ensure that some kind of warning is given when a range overlaps another.
     for field in fields {
         let Field {
             attrs,
@@ -107,6 +126,33 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
             end_bit,
             value,
         } = field;
+
+        let start: i32 = start_bit.base10_parse().unwrap();
+        let end: i32 = end_bit.base10_parse().unwrap();
+
+        if start > end {
+            syn_error!(start_bit, "Start bit must not be greater than end bit");
+        }
+
+        if start >= bits {
+            syn_error!(
+                start_bit,
+                format!("Start bit must be less than underlying size ({bits})")
+            );
+        }
+        if end >= bits {
+            syn_error!(
+                end_bit,
+                format!("End bit must be less than underlying size ({bits})")
+            );
+        }
+
+        if start < 0 {
+            syn_error!(start_bit, "Start bit must be greater than zero");
+        }
+        if end < 0 {
+            syn_error!(end_bit, "End bit must be greater than zero");
+        }
 
         const_fields.push(quote! {
             #(#attrs)*
