@@ -79,8 +79,13 @@ impl Parse for Field {
         let value = if input.peek(T![=]) {
             input.parse::<T![=]>()?;
             input.parse::<syn::Expr>()?
-        } else {
+        } else if start_bit.to_string() == end_bit.to_string() {
             syn::parse_quote! { 1 }
+        } else {
+            return Err(syn::Error::new_spanned(
+                name,
+                "Fields spanning multiple bits must define a specific value",
+            ));
         };
 
         Ok(Self {
