@@ -123,6 +123,7 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
     }
 
     quote! {
+        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #(#attrs)*
         #visibility struct #name(#ty);
 
