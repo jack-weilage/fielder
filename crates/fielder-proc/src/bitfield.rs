@@ -67,6 +67,7 @@ impl Parse for Field {
 
             input.parse::<syn::LitInt>()?
         } else {
+            // If there's no range, just use the start bit again.
             start_bit.clone()
         };
 
@@ -96,20 +97,30 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
         fields,
     } = bitfield;
 
-    let const_fields = fields.iter().map(
-        |Field {
-             attrs,
-             name,
-             value,
-             start_bit,
-             ..
-         }| {
-            quote! {
-                #(#attrs)*
-                const #name: Self = Self(#value << #start_bit);
-            }
-        },
-    );
+    let mut const_fields = Vec::with_capacity(fields.len());
+    let mut impl_const_fields = Vec::with_capacity(fields.len());
+    for field in fields {
+        let Field {
+            attrs,
+            name,
+            start_bit,
+            end_bit,
+            value,
+        } = field;
+
+        const_fields.push(quote! {
+            #(#attrs)*
+            const #name: Self = Self(#value << #start_bit);
+        });
+        impl_const_fields.push(quote! {
+            ::fielder::Field::<Self::Bits>::new_field(
+                stringify!(#name),
+                #start_bit,
+                #end_bit,
+                #value
+            )
+        })
+    }
 
     quote! {
         #(#attrs)*
@@ -118,6 +129,21 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
         #[allow(non_upper_case_globals)]
         impl #name {
             #(#const_fields)*
+        }
+
+        impl ::fielder::Fields for #name {
+            type Bits = #ty;
+
+            const FIELDS: &'static [::fielder::Field<Self::Bits>] = &[
+                #(#impl_const_fields),*
+            ];
+
+            fn from_bits(bits: Self::Bits) -> Self {
+                Self(bits)
+            }
+            fn to_bits(&self) -> Self::Bits {
+                self.0
+            }
         }
     }
     .into()

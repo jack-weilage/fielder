@@ -9,14 +9,6 @@ pub struct Field<B> {
     value: usize,
 }
 impl<B: BackingBits> Field<B> {
-    pub const fn new_flag(name: &'static str, bit: B) -> Self {
-        Self {
-            name,
-            start_bit: bit,
-            end_bit: bit,
-            value: 1,
-        }
-    }
     pub const fn new_field(name: &'static str, start_bit: B, end_bit: B, value: usize) -> Self {
         Self {
             name,
