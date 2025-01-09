@@ -3,6 +3,12 @@ name = "fielder-proc"
 version = "0.1.0"
 edition = "2021"
 
+description = "Macros for fielder"
+categories = ["no-std"]
+keywords = ["no_std", "bitflag", "bitfield"]
+repository = "https://github.com/jack-weilage/fielder"
+license = "MIT OR Apache-2.0"
+
 [dependencies]
 syn = "2.0.95"
 quote = "1.0.38"
