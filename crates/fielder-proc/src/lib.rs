@@ -11,6 +11,8 @@ use syn::{
 extern crate proc_macro;
 
 struct Bitfield {
+    attrs: Vec<Attribute>,
+
     visibility: Visibility,
     name: Ident,
     ty: Type,
@@ -19,6 +21,7 @@ struct Bitfield {
 }
 struct Field {
     attrs: Vec<Attribute>,
+
     name: Ident,
     start_bit: LitInt,
     end_bit: LitInt,
@@ -64,6 +67,9 @@ impl Parse for Field {
 
 impl Parse for Bitfield {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        // Attribute cannot be automatically parsed, so explicitly call parse_outer.
+        let attrs = Attribute::parse_outer(input)?;
+
         let visibility = input.parse::<Visibility>()?;
         input.parse::<T![struct]>()?;
         let name = input.parse::<Ident>()?;
@@ -76,6 +82,7 @@ impl Parse for Bitfield {
         let fields = content.parse_terminated(Field::parse, T![;])?;
 
         Ok(Bitfield {
+            attrs,
             visibility,
             name,
             ty,
@@ -87,31 +94,30 @@ impl Parse for Bitfield {
 #[proc_macro]
 pub fn bitfield(input: TokenStream) -> TokenStream {
     let Bitfield {
+        attrs,
         visibility,
         name,
         ty,
         fields,
     } = parse_macro_input!(input as Bitfield);
 
-    let const_fields = fields
-        .iter()
-        .map(
-            |Field {
-                 attrs,
-                 name,
-                 value,
-                 start_bit,
-                 ..
-             }| {
-                quote! {
-                    #(#attrs)*
-                    const #name: Self = Self(#value << #start_bit);
-                }
-            },
-        )
-        .collect::<Vec<_>>();
+    let const_fields = fields.iter().map(
+        |Field {
+             attrs,
+             name,
+             value,
+             start_bit,
+             ..
+         }| {
+            quote! {
+                #(#attrs)*
+                const #name: Self = Self(#value << #start_bit);
+            }
+        },
+    );
 
     quote! {
+        #(#attrs)*
         #visibility struct #name(#ty);
 
         #[allow(non_upper_case_globals)]
