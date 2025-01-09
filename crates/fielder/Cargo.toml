@@ -9,5 +9,8 @@ keywords = ["no_std", "bitflag", "bitfield"]
 repository = "https://github.com/jack-weilage/fielder"
 license = "MIT OR Apache-2.0"
 
+[dependencies]
+fielder-proc = { path = "../fielder-proc" }
+
 [lints]
 workspace = true
