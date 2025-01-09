@@ -110,16 +110,16 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
 
         const_fields.push(quote! {
             #(#attrs)*
-            const #name: Self = Self(#value << #start_bit);
+            const #name: ::fielder::Field<#ty> = ::fielder::Field {
+                name: stringify!(#name),
+                start_bit: #start_bit,
+                end_bit: #end_bit,
+
+                mask: ((1 << (#end_bit - #start_bit + 1)) - 1) << #start_bit,
+                value: #value << #start_bit
+            };
         });
-        impl_const_fields.push(quote! {
-            ::fielder::Field::<Self::Bits>::new_field(
-                stringify!(#name),
-                #start_bit,
-                #end_bit,
-                #value
-            )
-        })
+        impl_const_fields.push(quote! { Self::#name });
     }
 
     quote! {
@@ -130,20 +130,43 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
         #[allow(non_upper_case_globals)]
         impl #name {
             #(#const_fields)*
-        }
 
-        impl ::fielder::Fields for #name {
-            type Bits = #ty;
-
-            const FIELDS: &'static [::fielder::Field<Self::Bits>] = &[
+            const FIELDS: &'static [::fielder::Field<#ty>] = &[
                 #(#impl_const_fields),*
             ];
 
-            fn from_bits(bits: Self::Bits) -> Self {
+            /// Convert an integer into a bitfield.
+            #[inline]
+            pub const fn from_bits(bits: #ty) -> Self {
                 Self(bits)
             }
-            fn to_bits(&self) -> Self::Bits {
+            /// Convert the bitfield to its underlying representation.
+            #[inline]
+            pub const fn to_bits(&self) -> #ty {
                 self.0
+            }
+
+            /// Check if the bitfield contains a specific flag.
+            #[inline]
+            pub const fn contains(&self, field: ::fielder::Field<#ty>) -> bool {
+                (self.to_bits() & field.mask) == field.value
+            }
+
+            /// Set the bit/s related to the field to the field's value value.
+            #[inline]
+            pub const fn set(&mut self, field: ::fielder::Field<#ty>) -> Self {
+                self.0 = self.to_bits() & !field.mask | field.value;
+
+                *self
+            }
+
+            /// Unset the bit/s related to the field. Note that if there is a field with the value `0` over
+            /// the bit/s, that field will become active.
+            #[inline]
+            pub const fn unset(&mut self, field: ::fielder::Field<#ty>) -> Self {
+                self.0 = self.to_bits() & !field.mask;
+
+                *self
             }
         }
     }
