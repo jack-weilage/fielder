@@ -80,12 +80,13 @@ impl Parse for Field {
             input.parse::<T![=]>()?;
             input.parse::<syn::Expr>()?
         } else if start_bit.to_string() == end_bit.to_string() {
+            // If the field only spans a single bit, the value should be 1 by default to make it
+            // like a bitflag.
             syn::parse_quote! { 1 }
         } else {
-            return Err(syn::Error::new_spanned(
-                name,
-                "Fields spanning multiple bits must define a specific value",
-            ));
+            // If the field spans multiple bits, the value should be 0 to allow for more simple
+            // definition of counter bitfields.
+            syn::parse_quote! { 0 }
         };
 
         Ok(Self {
