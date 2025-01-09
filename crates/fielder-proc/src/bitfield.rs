@@ -160,7 +160,7 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
                 name: stringify!(#name),
                 start_bit: #start_bit,
                 end_bit: #end_bit,
-
+                #[allow(clippy::identity_op)]
                 mask: ((1 << (#end_bit - #start_bit + 1)) - 1) << #start_bit,
                 value: #value << #start_bit
             };
@@ -201,7 +201,7 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
             /// Set the bit/s related to the field to the field's value value.
             #[inline]
             pub const fn set(&mut self, field: ::fielder::Field<#ty>) -> Self {
-                self.0 = self.to_bits() & !field.mask | field.value;
+                self.0 = (self.to_bits() & !field.mask) | field.value;
 
                 *self
             }
@@ -211,6 +211,20 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
             #[inline]
             pub const fn unset(&mut self, field: ::fielder::Field<#ty>) -> Self {
                 self.0 = self.to_bits() & !field.mask;
+
+                *self
+            }
+
+            /// Get the literal value of the bit/s related to the field.
+            #[inline]
+            pub const fn get_literal(&self, field: ::fielder::Field<#ty>) -> #ty {
+                (self.to_bits() & field.mask) >> field.start_bit
+            }
+
+            /// Sets the literal value of the bit/s related to the field.
+            #[inline]
+            pub const fn set_literal(&mut self, field: ::fielder::Field<#ty>, value: #ty) -> Self {
+                self.0 = (self.to_bits() & !field.mask) | ((value << field.start_bit) & field.mask);
 
                 *self
             }
