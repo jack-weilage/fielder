@@ -10,7 +10,7 @@ repository = "https://github.com/jack-weilage/fielder"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-fielder-proc = { path = "../fielder-proc" }
+fielder-proc = { path = "../fielder-proc", version = "0.1.0" }
 
 [lints]
 workspace = true
