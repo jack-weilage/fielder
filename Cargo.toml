@@ -2,7 +2,7 @@
 resolver = "2"
 members = ["crates/*"]
 
-[lints.clippy]
+[workspace.lints.clippy]
 cargo = "deny"
 complexity = "warn"
 perf = "warn"
