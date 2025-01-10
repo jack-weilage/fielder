@@ -239,6 +239,29 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
                 *self
             }
         }
+        impl ::core::fmt::Debug for #name {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                ::core::fmt::Display::fmt(self, f)
+            }
+        }
+        impl ::core::fmt::Display for #name {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                let mut first = true;
+
+                for field in Self::FIELDS.iter().filter(|&&f| self.contains(f)) {
+                    if !first {
+                        f.write_str(" | ")?;
+                    }
+                    first = false;
+
+                    f.write_fmt(format_args!("{}({:#b})", field.name, field.value >> field.start_bit))?;
+                }
+
+                Ok(())
+            }
+        }
     }
     .into()
 }
+// TODO: use !0 to denote the field being a counter. This should still mask the bits and set a
+// "is_counter" mask.
