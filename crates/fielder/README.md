@@ -1,3 +1,1 @@
-# `fielder`
-
-Check the workspace-level documentation.
+../../README.md
