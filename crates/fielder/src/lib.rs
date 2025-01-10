@@ -51,6 +51,8 @@
 /// # Example
 ///
 /// ```edition2021
+/// use fielder::bitfield;
+///
 /// bitfield! {
 ///     // The struct definition can include a visiblity modifier (`pub(crate)`) and must include
 ///     // a type (`u8`).
