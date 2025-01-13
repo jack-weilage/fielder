@@ -56,6 +56,8 @@ pub struct Field {
     start_bit: syn::LitInt,
     end_bit: syn::LitInt,
     value: syn::Expr,
+
+    is_counter: bool,
 }
 impl Parse for Field {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -94,7 +96,8 @@ impl Parse for Field {
             name,
             start_bit,
             end_bit,
-            value,
+            value: value.clone(),
+            is_counter: value == syn::parse_quote! { !0 },
         })
     }
 }
@@ -131,6 +134,7 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
             start_bit,
             end_bit,
             value,
+            is_counter,
         } = field;
 
         let start: i32 = start_bit.base10_parse().unwrap();
@@ -171,7 +175,8 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
                     start_bit: #start_bit,
                     end_bit: #end_bit,
                     mask,
-                    value: (#value << #start_bit) & mask
+                    value: (#value << #start_bit) & mask,
+                    is_counter: #is_counter,
                 }
             };
         });
@@ -191,7 +196,10 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
                         }
                         first = false;
 
-                        ::defmt::write!(fmt, "{}({:#b})", field.name, field.value >> field.start_bit);
+                        ::defmt::write!(fmt, "{}", field.name);
+                        if field.is_counter {
+                            ::defmt::write!(fmt, "({})", self.get_literal(*field));
+                        }
                     }
                     ::defmt::write!(fmt, ")");
                 }
@@ -228,7 +236,7 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
             /// Check if the bitfield contains a specific flag.
             #[inline]
             pub const fn contains(&self, field: ::fielder::Field<#ty>) -> bool {
-                (self.to_bits() & field.mask) == field.value
+                field.is_counter || (self.to_bits() & field.mask) == field.value
             }
 
             /// Set the bit/s related to the field to the field's value value.
@@ -271,20 +279,25 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 let mut first = true;
 
+                f.write_fmt(format_args!("{}(", stringify!(#name)))?;
                 for field in Self::FIELDS.iter().filter(|&&f| self.contains(f)) {
                     if !first {
                         f.write_str(" | ")?;
                     }
                     first = false;
 
-                    f.write_fmt(format_args!("{}({:#b})", field.name, field.value >> field.start_bit))?;
+                    f.write_fmt(format_args!("{}", field.name))?;
+                    if field.is_counter {
+                        f.write_fmt(format_args!("({})", self.get_literal(*field)))?;
+                    }
                 }
+                f.write_str(")")?;
 
                 Ok(())
             }
         }
 
-        #defmt        
+        #defmt
     }
     .into()
 }
