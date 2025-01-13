@@ -43,10 +43,11 @@
 //! ```
 #![no_std]
 
+#[doc(inline)]
 pub use fielder_proc::bitfield;
 
 /// A struct defining the parts of a field. This struct is automatically constructed via the
-/// [`bitfield`](crate::bitfield) macro.
+/// [`bitfield`] macro.
 #[derive(Debug, Clone, Copy)]
 pub struct Field<Bits> {
     pub name: &'static str,

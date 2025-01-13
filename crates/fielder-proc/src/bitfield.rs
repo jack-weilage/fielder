@@ -97,7 +97,7 @@ impl Parse for Field {
             start_bit,
             end_bit,
             value: value.clone(),
-            is_counter: value == syn::parse_quote! { !0 },
+            is_counter: value.to_token_stream().to_string() == "!0",
         })
     }
 }
@@ -301,5 +301,3 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
     }
     .into()
 }
-// TODO: use !0 to denote the field being a counter. This should still mask the bits and set a
-// "is_counter" mask.

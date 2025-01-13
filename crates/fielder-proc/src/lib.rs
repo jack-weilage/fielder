@@ -2,6 +2,11 @@
 //!
 //! This crate contains the proc-macros used by
 //! [`fielder`](https://docs.rs/fielder/latest/fielder).
+
+#[doc = include_str!("../README.md")]
+#[cfg(doctest)]
+struct ReadmeDoctest;
+
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
 
