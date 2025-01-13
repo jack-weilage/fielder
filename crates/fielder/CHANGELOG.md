@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/jack-weilage/fielder/compare/fielder-v0.1.3...fielder-v0.2.0) - 2025-01-13
+
+### Added
+
+- Support 'counter' fields
+- Support `defmt`
+
+### Fixed
+
+- Correctly link documentation
+
 ## [0.1.3](https://github.com/jack-weilage/fielder/compare/fielder-v0.1.2...fielder-v0.1.3) - 2025-01-10
 
 ### Other
