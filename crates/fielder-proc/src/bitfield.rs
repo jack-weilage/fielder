@@ -214,90 +214,105 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
         #(#attrs)*
         #visibility struct #name(#ty);
 
-        #[allow(non_upper_case_globals)]
-        impl #name {
-            #(#const_fields)*
+        impl ::fielder::Bitfield for #name {
+            type Bits = #ty;
 
-            const FIELDS: &'static [::fielder::Field<#ty>] = &[
+            const FIELDS: &'static [::fielder::Field<Self::Bits>] = &[
                 #(#impl_const_fields),*
             ];
 
-            /// Convert an integer into a bitfield.
-            #[inline]
-            pub const fn from_bits(bits: #ty) -> Self {
-                Self(bits)
-            }
-            /// Convert the bitfield to its underlying representation.
-            #[inline]
-            pub const fn to_bits(&self) -> #ty {
+            fn to_bits(&self) -> Self::Bits {
                 self.0
             }
-
-            /// Check if the bitfield contains a specific flag.
-            #[inline]
-            pub const fn contains(&self, field: ::fielder::Field<#ty>) -> bool {
-                field.is_counter || (self.to_bits() & field.mask) == field.value
-            }
-
-            /// Set the bit/s related to the field to the field's value value.
-            #[inline]
-            pub const fn set(&mut self, field: ::fielder::Field<#ty>) -> Self {
-                self.0 = (self.to_bits() & !field.mask) | field.value;
-
-                *self
-            }
-
-            /// Unset the bit/s related to the field. Note that if there is a field with the value `0` over
-            /// the bit/s, that field will become active.
-            #[inline]
-            pub const fn unset(&mut self, field: ::fielder::Field<#ty>) -> Self {
-                self.0 = self.to_bits() & !field.mask;
-
-                *self
-            }
-
-            /// Get the literal value of the bit/s related to the field.
-            #[inline]
-            pub const fn get_literal(&self, field: ::fielder::Field<#ty>) -> #ty {
-                (self.to_bits() & field.mask) >> field.start_bit
-            }
-
-            /// Sets the literal value of the bit/s related to the field.
-            #[inline]
-            pub const fn set_literal(&mut self, field: ::fielder::Field<#ty>, value: #ty) -> Self {
-                self.0 = (self.to_bits() & !field.mask) | ((value << field.start_bit) & field.mask);
-
-                *self
+            fn from_bits(bits: Self::Bits) -> Self {
+                Self(bits)
             }
         }
-        impl ::core::fmt::Debug for #name {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                ::core::fmt::Display::fmt(self, f)
-            }
-        }
-        impl ::core::fmt::Display for #name {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                let mut first = true;
 
-                f.write_fmt(format_args!("{}(", stringify!(#name)))?;
-                for field in Self::FIELDS.iter().filter(|&&f| self.contains(f)) {
-                    if !first {
-                        f.write_str(" | ")?;
-                    }
-                    first = false;
+        const _: () = {
+            use ::fielder::Bitfield as _;
 
-                    f.write_fmt(format_args!("{}", field.name))?;
-                    if field.is_counter {
-                        f.write_fmt(format_args!("({})", self.get_literal(*field)))?;
-                    }
+            #[allow(non_upper_case_globals)]
+            impl #name {
+                #(#const_fields)*
+
+                /// Convert an integer into a bitfield.
+                #[inline]
+                pub const fn from_bits(bits: #ty) -> Self {
+                    Self(bits)
                 }
-                f.write_str(")")?;
+                /// Convert the bitfield to its underlying representation.
+                #[inline]
+                pub const fn to_bits(&self) -> #ty {
+                    self.0
+                }
 
-                Ok(())
+                /// Check if the bitfield contains a specific flag.
+                #[inline]
+                pub const fn contains(&self, field: ::fielder::Field<#ty>) -> bool {
+                    field.is_counter || (self.to_bits() & field.mask) == field.value
+                }
+
+                /// Set the bit/s related to the field to the field's value value.
+                #[inline]
+                pub const fn set(&mut self, field: ::fielder::Field<#ty>) -> Self {
+                    self.0 = (self.to_bits() & !field.mask) | field.value;
+
+                    *self
+                }
+
+                /// Unset the bit/s related to the field. Note that if there is a field with the value `0` over
+                /// the bit/s, that field will become active.
+                #[inline]
+                pub const fn unset(&mut self, field: ::fielder::Field<#ty>) -> Self {
+                    self.0 = self.to_bits() & !field.mask;
+
+                    *self
+                }
+
+                /// Get the literal value of the bit/s related to the field.
+                #[inline]
+                pub const fn get_literal(&self, field: ::fielder::Field<#ty>) -> #ty {
+                    (self.to_bits() & field.mask) >> field.start_bit
+                }
+
+                /// Sets the literal value of the bit/s related to the field.
+                #[inline]
+                pub const fn set_literal(&mut self, field: ::fielder::Field<#ty>, value: #ty) -> Self {
+                    self.0 = (self.to_bits() & !field.mask) | ((value << field.start_bit) & field.mask);
+
+                    *self
+                }
             }
-        }
+            impl ::core::fmt::Debug for #name {
+                fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                    ::core::fmt::Display::fmt(self, f)
+                }
+            }
+            impl ::core::fmt::Display for #name {
+                fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                    let mut first = true;
 
-        #defmt
+                    f.write_fmt(format_args!("{}(", stringify!(#name)))?;
+                    for field in Self::FIELDS.iter().filter(|&&f| self.contains(f)) {
+                        if !first {
+                            f.write_str(" | ")?;
+                        }
+                        first = false;
+
+                        f.write_fmt(format_args!("{}", field.name))?;
+                        if field.is_counter {
+                            f.write_fmt(format_args!("({})", self.get_literal(*field)))?;
+                        }
+                    }
+                    f.write_str(")")?;
+
+                    Ok(())
+                }
+            }
+
+            #defmt
+        };
     }
     .into()
 }

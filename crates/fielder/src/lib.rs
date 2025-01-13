@@ -43,20 +43,23 @@
 //! ```
 #![no_std]
 
+mod traits;
+pub use traits::*;
+
 #[doc(inline)]
 pub use fielder_proc::bitfield;
 
 /// A struct defining the parts of a field. This struct is automatically constructed via the
 /// [`bitfield`] macro.
 #[derive(Debug, Clone, Copy)]
-pub struct Field<Bits> {
+pub struct Field<B: Bits> {
     pub name: &'static str,
 
-    pub start_bit: Bits,
-    pub end_bit: Bits,
+    pub start_bit: B,
+    pub end_bit: B,
 
-    pub mask: Bits,
-    pub value: Bits,
+    pub mask: B,
+    pub value: B,
 
     pub is_counter: bool,
 }
