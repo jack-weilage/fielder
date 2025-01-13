@@ -13,6 +13,9 @@ license = "MIT OR Apache-2.0"
 syn = "2.0.95"
 quote = "1.0.38"
 
+[features]
+defmt = []
+
 [lints]
 workspace = true
 

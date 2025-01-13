@@ -13,5 +13,11 @@ readme = "../../README.md"
 [dependencies]
 fielder-proc = { path = "../fielder-proc", version = "0.1.1" }
 
+[dev-dependencies]
+defmt = "0.3.10"
+
+[features]
+defmt = ["fielder-proc/defmt"]
+
 [lints]
 workspace = true

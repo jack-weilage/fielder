@@ -178,6 +178,29 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
         impl_const_fields.push(quote! { Self::#name });
     }
 
+    let defmt = if cfg!(feature = "defmt") {
+        quote! {
+            impl ::defmt::Format for #name {
+                fn format(&self, fmt: ::defmt::Formatter) {
+                    let mut first = true;
+
+                    ::defmt::write!(fmt, "{}(", stringify!(#name));
+                    for field in Self::FIELDS.iter().filter(|&&f| self.contains(f)) {
+                        if !first {
+                            ::defmt::write!(fmt, " | ");
+                        }
+                        first = false;
+
+                        ::defmt::write!(fmt, "{}({:#b})", field.name, field.value >> field.start_bit);
+                    }
+                    ::defmt::write!(fmt, ")");
+                }
+            }
+        }
+    } else {
+        quote! {}
+    };
+
     quote! {
         #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #(#attrs)*
@@ -260,6 +283,8 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
                 Ok(())
             }
         }
+
+        #defmt        
     }
     .into()
 }
