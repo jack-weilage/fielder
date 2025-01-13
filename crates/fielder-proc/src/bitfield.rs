@@ -163,7 +163,7 @@ pub fn to_tokens(bitfield: Bitfield) -> TokenStream {
         const_fields.push(quote! {
             #(#attrs)*
             const #name: ::fielder::Field<#ty> = {
-                #[allow(clippy::identity_op)]
+                #[allow(clippy::identity_op, clippy::eq_op)]
                 let mask = ((1 << (#end_bit - #start_bit + 1)) - 1) << #start_bit;
 
                 ::fielder::Field {
