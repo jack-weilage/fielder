@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/jack-weilage/fielder/compare/fielder-v0.2.0...fielder-v0.2.1) - 2025-01-13
+
+### Added
+
+- Added `Bitfield` and `Field` traits
+
 ## [0.2.0](https://github.com/jack-weilage/fielder/compare/fielder-v0.1.3...fielder-v0.2.0) - 2025-01-13
 
 ### Added

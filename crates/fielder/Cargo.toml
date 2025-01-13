@@ -1,6 +1,6 @@
 [package]
 name = "fielder"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 
 description = "Efficient and precise bitfields"
@@ -11,7 +11,7 @@ license = "MIT OR Apache-2.0"
 readme = "../../README.md"
 
 [dependencies]
-fielder-proc = { path = "../fielder-proc", version = "0.1.2" }
+fielder-proc = { path = "../fielder-proc", version = "0.1.3" }
 
 [dev-dependencies]
 defmt = "0.3.10"
